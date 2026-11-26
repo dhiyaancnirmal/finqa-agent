@@ -76,6 +76,62 @@ def markdown(summaries: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _load(path: str) -> dict[str, dict]:
+    with open(path) as f:
+        return {r["id"]: r for r in map(json.loads, filter(str.strip, f))}
+
+
+def paired(runs_dir: str) -> list[dict]:
+    """Per model, baseline vs harness on only the questions both runs have answered."""
+    out = []
+    for base_path in sorted(glob.glob(os.path.join(runs_dir, "*__baseline.jsonl"))):
+        harness_path = base_path.replace("__baseline.jsonl", "__harness.jsonl")
+        if not os.path.isfile(harness_path):
+            continue
+        b, h = _load(base_path), _load(harness_path)
+        ids = sorted(set(b) & set(h))
+        if not ids:
+            continue
+
+        def tok(rows: list[dict]) -> float:
+            return statistics.mean(r["prompt_tokens"] + r["completion_tokens"] for r in rows)
+
+        out.append(
+            {
+                "model": b[ids[0]]["model"],
+                "n": len(ids),
+                "baseline_correct": sum(b[i]["reward"] > 0 for i in ids),
+                "harness_correct": sum(h[i]["reward"] > 0 for i in ids),
+                "harness_only": sum(h[i]["reward"] > b[i]["reward"] for i in ids),
+                "baseline_only": sum(b[i]["reward"] > h[i]["reward"] for i in ids),
+                "baseline_tokens": tok([b[i] for i in ids]),
+                "harness_tokens": tok([h[i] for i in ids]),
+            }
+        )
+    return out
+
+
+def paired_markdown(rows: list[dict]) -> str:
+    lines = [
+        "Paired: the same questions, answered by both agents.",
+        "",
+        (
+            "| Model | Questions | Baseline | Harness | Gain | Only harness right | Only baseline right "
+            "| Tokens / task, baseline -> harness |"
+        ),
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        n = r["n"]
+        b, h = 100 * r["baseline_correct"] / n, 100 * r["harness_correct"] / n
+        lines.append(
+            f"| `{r['model'].removeprefix('nvidia/')}` | {n} | {r['baseline_correct']}/{n} ({b:.1f}%) "
+            f"| {r['harness_correct']}/{n} ({h:.1f}%) | {h - b:+.1f} pts | {r['harness_only']} | "
+            f"{r['baseline_only']} | {r['baseline_tokens']:,.0f} -> {r['harness_tokens']:,.0f} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs", default="results/runs")
@@ -85,7 +141,7 @@ def main(argv: list[str] | None = None) -> None:
     summaries = [summarize(path) for path in sorted(glob.glob(os.path.join(a.runs, "*.jsonl")))]
     with open(os.path.join(a.out, "summary.json"), "w") as f:
         json.dump(summaries, f, indent=2)
-    table = markdown(summaries)
+    table = markdown(summaries) + "\n" + paired_markdown(paired(a.runs))
     with open(os.path.join(a.out, "summary.md"), "w") as f:
         f.write(table)
     print(table)
