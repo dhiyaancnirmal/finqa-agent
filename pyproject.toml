@@ -1,0 +1,28 @@
+[project]
+name = "finqa-agent"
+version = "0.1.0"
+description = "A tool-using agent harness for Snorkel's FinQA benchmark, evaluated on NVIDIA Nemotron models"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai>=1.40",
+    "pandas>=2.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+finqa-eval = "finqa_agent.eval:main"
+finqa-report = "finqa_agent.report:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 110
+extend-exclude = ["finqa_agent/vendor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
