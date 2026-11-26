@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .agents import HarnessConfig, run_baseline, run_harness
 from .env import FinQAEnv
-from .llm import OpenAIChat, Usage
+from .llm import APIUnavailable, OpenAIChat, Usage
 
 
 def load_dotenv(path: str) -> None:
@@ -72,12 +72,14 @@ def main(argv: list[str] | None = None) -> None:
 
     def one(q):
         usage, ep, t0 = Usage(), env.episode(q), time.time()
-        error = None
+        error, unavailable = None, False
         try:
             if a.agent == "baseline":
                 log = run_baseline(ep, llm, usage)
             else:
                 log = run_harness(ep, llm, usage, cfg)
+        except APIUnavailable as e:
+            log, error, unavailable = None, str(e), True
         except Exception as e:  # noqa: BLE001 - record and move on; a crashed episode scores 0
             log, error = None, f"{type(e).__name__}: {e}"
             traceback.print_exc()
@@ -103,6 +105,8 @@ def main(argv: list[str] | None = None) -> None:
             "error": error,
             "transcript": log.transcript if log else [],
         }
+        if unavailable:  # not written, so the next run with the same --out retries it
+            return None
         with lock, open(a.out, "a") as f:
             f.write(json.dumps(row) + "\n")
         return row
@@ -111,6 +115,9 @@ def main(argv: list[str] | None = None) -> None:
     with ThreadPoolExecutor(max_workers=a.concurrency) as pool:
         for fut in as_completed([pool.submit(one, q) for q in todo]):
             row = fut.result()
+            if row is None:
+                print("skipped an episode: API unavailable (rerun to retry it)", flush=True)
+                continue
             n += 1
             correct += row["reward"] > 0
             print(

@@ -11,6 +11,11 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+MAX_ATTEMPTS = 20  # rate limits and outages on the free tier; backoff caps at 2 minutes
+
+
+class APIUnavailable(RuntimeError):
+    """The API kept failing (rate limits, outages). Not the agent's fault, so the episode is not scored."""
 
 
 @dataclass
@@ -69,7 +74,7 @@ class OpenAIChat:
         from openai import APIConnectionError, APIStatusError, APITimeoutError
 
         delay = 5.0
-        for attempt in range(8):
+        for attempt in range(MAX_ATTEMPTS):
             self._pace()
             try:
                 resp = self.client.chat.completions.create(
@@ -91,7 +96,7 @@ class OpenAIChat:
                     raise
                 reason = f"HTTP {e.status_code}"
             usage.retries += 1
-            print(f"retry {attempt + 1}/8 after {reason}", file=sys.stderr, flush=True)
+            print(f"retry {attempt + 1}/{MAX_ATTEMPTS} after {reason}", file=sys.stderr, flush=True)
             time.sleep(delay + random.random() * delay)
             delay = min(delay * 2, 120)
-        raise RuntimeError("LLM call failed after retries")
+        raise APIUnavailable(f"LLM call failed after {MAX_ATTEMPTS} attempts")
