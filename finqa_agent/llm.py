@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import random
+import sys
 import time
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -16,6 +17,7 @@ class Usage:
     prompt_tokens: int = 0
     completion_tokens: int = 0
     llm_calls: int = 0
+    retries: int = 0
 
     def add(self, usage: Any) -> None:
         self.llm_calls += 1
@@ -64,11 +66,14 @@ class OpenAIChat:
                 )
                 usage.add(resp.usage)
                 return resp.choices[0].message
-            except (APIConnectionError, APITimeoutError):
-                pass
+            except (APIConnectionError, APITimeoutError) as e:
+                reason = type(e).__name__
             except APIStatusError as e:
                 if e.status_code not in (429, 500, 502, 503, 504):
                     raise
+                reason = f"HTTP {e.status_code}"
+            usage.retries += 1
+            print(f"retry {attempt + 1}/8 after {reason}", file=sys.stderr, flush=True)
             time.sleep(delay + random.random() * delay)
             delay = min(delay * 2, 120)
         raise RuntimeError("LLM call failed after retries")

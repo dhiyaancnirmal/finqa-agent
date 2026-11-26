@@ -55,6 +55,6 @@ def test_lint_sql_flags_unquoted_year_columns():
     cols = ["operations", "2022", "2023"]
     warning = lint_sql("SELECT operations, 2022 FROM t WHERE operations = 'total'", cols)
     assert warning is not None and '"2022"' in warning
-    assert lint_sql('SELECT "2022" FROM t WHERE operations = \'total\'', cols) is None
+    assert lint_sql("SELECT \"2022\" FROM t WHERE operations = 'total'", cols) is None
     assert lint_sql("SELECT x FROM t WHERE label = '2022'", cols) is None
     assert lint_sql("SELECT 2022 FROM t WHERE a = 1", ["a", "b"]) is None
