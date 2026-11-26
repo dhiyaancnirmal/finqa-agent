@@ -80,6 +80,7 @@ def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--runs", default="results/runs")
     p.add_argument("--out", default="results")
+    p.add_argument("--example", default=None, help="RUN:QUESTION_ID to render as results/example_episode.md")
     a = p.parse_args(argv)
     summaries = [summarize(path) for path in sorted(glob.glob(os.path.join(a.runs, "*.jsonl")))]
     with open(os.path.join(a.out, "summary.json"), "w") as f:
@@ -88,6 +89,29 @@ def main(argv: list[str] | None = None) -> None:
     with open(os.path.join(a.out, "summary.md"), "w") as f:
         f.write(table)
     print(table)
+    if a.example:
+        run, qid = a.example.split(":")
+        with open(os.path.join(a.runs, f"{run}.jsonl")) as f:
+            row = next(r for r in map(json.loads, f) if r["id"] == qid)
+        with open(os.path.join(a.out, "example_episode.md"), "w") as f:
+            f.write(episode_markdown(row, run))
+
+
+def episode_markdown(row: dict, run: str) -> str:
+    """Render one episode's tool calls as a readable transcript."""
+    out = [
+        f"# Example episode: question {row['id']} ({run})",
+        "",
+        f"Question: {row['question']}",
+        "",
+        f"Ground truth: `{row['truth']}`. Submitted: `{row['submitted']}`. Reward: {row['reward']}.",
+        "",
+    ]
+    for i, t in enumerate(row["transcript"], 1):
+        args = {k: v for k, v in t["args"].items() if k != "company_name"}
+        result = t["result"] if len(t["result"]) <= 600 else t["result"][:600] + " ..."
+        out += [f"**{i}. `{t['tool']}`** `{json.dumps(args)}`", "", "```", result, "```", ""]
+    return "\n".join(out)
 
 
 if __name__ == "__main__":
