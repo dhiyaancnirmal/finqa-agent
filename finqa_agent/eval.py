@@ -51,7 +51,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--concurrency", type=int, default=4)
     p.add_argument("--max-tokens", type=int, default=4096)
     p.add_argument("--rpm", type=float, default=None, help="cap on requests per minute for this process")
-    p.add_argument("--env-file", default=os.path.expanduser("~/.config/rec9/.env"))
+    p.add_argument("--env-file", default=".env", help="dotenv file with NVIDIA_API_KEY (gitignored)")
     a = p.parse_args(argv)
 
     load_dotenv(a.env_file)
