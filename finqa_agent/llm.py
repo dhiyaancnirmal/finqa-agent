@@ -85,7 +85,9 @@ class OpenAIChat:
             except (APIConnectionError, APITimeoutError) as e:
                 reason = type(e).__name__
             except APIStatusError as e:
-                if e.status_code not in (429, 500, 502, 503, 504):
+                # build.nvidia.com answers 400 "DEGRADED function cannot be invoked" during outages.
+                degraded = e.status_code == 400 and "DEGRADED" in str(e)
+                if e.status_code not in (429, 500, 502, 503, 504) and not degraded:
                     raise
                 reason = f"HTTP {e.status_code}"
             usage.retries += 1
