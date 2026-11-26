@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import random
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -39,9 +40,13 @@ class OpenAIChat:
         temperature: float = 0.0,
         base_url: str = NVIDIA_BASE_URL,
         api_key: str | None = None,
+        rpm: float | None = None,
     ):
         from openai import OpenAI
 
+        self._interval = 60.0 / rpm if rpm else 0.0
+        self._next = 0.0
+        self._lock = threading.Lock()
         key = api_key or os.environ.get("NVIDIA_API_KEY")
         if not key:
             raise SystemExit("Set NVIDIA_API_KEY (see README).")
@@ -50,11 +55,22 @@ class OpenAIChat:
         self.max_tokens = max_tokens
         self.temperature = temperature
 
+    def _pace(self) -> None:
+        """Space requests at least 60/rpm seconds apart across all threads."""
+        if not self._interval:
+            return
+        with self._lock:
+            now = time.monotonic()
+            slot = max(now, self._next)
+            self._next = slot + self._interval
+        time.sleep(max(0.0, slot - now))
+
     def chat(self, messages, tools, usage, **kw):
         from openai import APIConnectionError, APIStatusError, APITimeoutError
 
         delay = 5.0
         for attempt in range(8):
+            self._pace()
             try:
                 resp = self.client.chat.completions.create(
                     model=self.model,

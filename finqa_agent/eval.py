@@ -50,6 +50,7 @@ def main(argv: list[str] | None = None) -> None:
     p.add_argument("--ids", default=None, help="comma-separated question ids")
     p.add_argument("--concurrency", type=int, default=4)
     p.add_argument("--max-tokens", type=int, default=4096)
+    p.add_argument("--rpm", type=float, default=None, help="cap on requests per minute for this process")
     p.add_argument("--env-file", default=os.path.expanduser("~/.config/rec9/.env"))
     a = p.parse_args(argv)
 
@@ -64,7 +65,7 @@ def main(argv: list[str] | None = None) -> None:
     skip = done_ids(a.out)
     todo = [q for q in questions if q.id not in skip]
     cfg = HarnessConfig.from_names(a.features)
-    llm = OpenAIChat(a.model, max_tokens=a.max_tokens)
+    llm = OpenAIChat(a.model, max_tokens=a.max_tokens, rpm=a.rpm)
     os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     lock = threading.Lock()
     print(f"{len(todo)} to run, {len(skip)} already done -> {a.out}", flush=True)
@@ -94,6 +95,7 @@ def main(argv: list[str] | None = None) -> None:
             "llm_calls": usage.llm_calls,
             "prompt_tokens": usage.prompt_tokens,
             "completion_tokens": usage.completion_tokens,
+            "retries": usage.retries,
             "seconds": round(time.time() - t0, 1),
             "calc_calls": log.calc_calls if log else 0,
             "selfcheck_changed": log.selfcheck_changed if log else None,
