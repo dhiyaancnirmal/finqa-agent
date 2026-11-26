@@ -20,11 +20,18 @@ the two columns score the same questions. It is regenerated as the runs fill in.
 
 | Model | Questions so far | Baseline (OpenEnv reference loop) | Harness | Tokens / task, baseline -> harness |
 |---|---|---|---|---|
-| Nemotron 3.5 Super 120B-A12B | 60 of 290 | 46/60 (76.7%) | 48/60 (80.0%) | 14,976 -> 18,446 |
+| Nemotron 3.5 Super 120B-A12B | 79 of 290 | 54/79 (68.4%) | 60/79 (75.9%) | 37,443 -> 22,651 |
+| Nemotron 3 Ultra 550B-A55B | 8 of 290 | 5/8 (62.5%) | 8/8 (100.0%) | 41,857 -> 15,701 |
+| Nemotron 3.5 Lightning 30B-A3B | 6 of 290 | 0/6 (0.0%) | 5/6 (83.3%) | 251,656 -> 51,195 |
 
-On these 60 questions the harness was right on 5 the baseline missed and wrong on 3 the baseline got. A
-3-point gain on 60 questions is within noise. Per-run rows with 95% intervals, plus partial Nemotron 3
-Ultra 550B and Nemotron 3.5 Lightning 30B runs, are in [`results/summary.md`](results/summary.md).
+On Super's 79 questions the harness was right on 9 the baseline missed and wrong on 3 the baseline got:
++7.6 points, with 39% fewer tokens per task. Super's baseline loses mostly on turns that end with neither a
+tool call nor text, which the reference loop submits as "unknown" (10 of its first 80 answers). It also
+loses on loops to the 50-step cap; question 118 calls `get_descriptions` 50 times. The smaller and larger
+models fall into a different trap: they write `SELECT 2023` for a year column and read the number 2023
+back as data. That happened in 11 of Ultra's first 20 baseline episodes and 4 of Lightning's first 6.
+The Ultra and Lightning rows are too small to conclude from yet. Per-run rows with 95% intervals are in
+[`results/summary.md`](results/summary.md).
 
 Cost per task is $0 because build.nvidia.com's free tier serves these models. Tokens per task is the cost
 measure that carries over to a paid endpoint. Wall time includes waiting on the free tier's rate limit.
@@ -33,15 +40,14 @@ measure that carries over to a paid endpoint. Wall time includes waiting on the 
 
 | System | FinQA pass@1 | Setup | Source |
 |---|---|---|---|
+| Nemotron 3.5 Super 120B-A12B, this harness (partial) | 75.9% | 79 of 290 questions so far, no training | this repo |
+| Nemotron 3.5 Super 120B-A12B, OpenEnv reference loop (partial) | 68.4% | same 79 questions | this repo |
 | Qwen3.5-9B, RL-trained with Crusoe Managed RL | 73.9% | GRPO on 165 other companies, scored on the 290 | [Crusoe, 2026-11-18](https://www.crusoe.ai/resources/blog/managed-rl-9b-model-beats-1t-finqa) |
 | Kimi K2.6 (1T) | 66.9% | Crusoe's harness, 20 tool turns | same |
 | rLLM-FinQA-4B, RL-trained | 59.7% | rLLM's harness with a calculator tool | [rLLM, 2026-02-18](https://rllm-project.com/posts/finqa.md) |
 | Qwen3.5-9B, untrained | 53.1% | Crusoe's harness | Crusoe |
 | Qwen3-235B-A22B | 51.4% | rLLM's harness | rLLM |
 | Llama 3.3 Nemotron Super 49B v1.5 | 44% | Snorkel's leaderboard | [Snorkel, 2026-03-30](https://research.snorkel.ai/thoughts/building-finqa-an-open-rl-environment-for-financial-reasoning-agents/) |
-
-| Nemotron 3.5 Super 120B-A12B, this harness (partial) | 80.0% | 60 of 290 questions so far | this repo |
-| Nemotron 3.5 Super 120B-A12B, OpenEnv reference loop (partial) | 76.7% | same 60 questions | this repo |
 
 These were run with different harnesses, step limits and model versions, so read them as context, not a
 controlled comparison. Only the two rows from this repo share a setup.

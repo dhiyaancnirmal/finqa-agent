@@ -1,24 +1,77 @@
 [
   {
+    "run": "lightning-30b__baseline",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "agent": "baseline",
+    "features": null,
+    "n": 6,
+    "correct": 0,
+    "pass_at_1": 0.0,
+    "ci95": [
+      0.0,
+      0.3903430336530645
+    ],
+    "mean_env_steps": 29.333333333333332,
+    "mean_llm_calls": 29.333333333333332,
+    "mean_prompt_tokens": 234295.83333333334,
+    "mean_completion_tokens": 17360,
+    "mean_tokens": 251655.83333333334,
+    "median_seconds": 580.4,
+    "stops": {
+      "submitted": 3,
+      "max_steps": 3
+    },
+    "errors": 0,
+    "selfcheck_changed_answer": 0,
+    "usd_per_task": 0.0
+  },
+  {
+    "run": "lightning-30b__harness",
+    "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+    "agent": "harness",
+    "features": "all",
+    "n": 17,
+    "correct": 11,
+    "pass_at_1": 0.6470588235294118,
+    "ci95": [
+      0.4129996672121182,
+      0.826905138560951
+    ],
+    "mean_env_steps": 11.588235294117647,
+    "mean_llm_calls": 12.823529411764707,
+    "mean_prompt_tokens": 49315.41176470588,
+    "mean_completion_tokens": 6193.529411764706,
+    "mean_tokens": 55508.94117647059,
+    "median_seconds": 128.4,
+    "stops": {
+      "submitted": 15,
+      "max_turns": 2
+    },
+    "errors": 0,
+    "selfcheck_changed_answer": 1,
+    "usd_per_task": 0.0
+  },
+  {
     "run": "super-120b__baseline",
     "model": "nvidia/nemotron-3.5-super-vl-120b-a12b",
     "agent": "baseline",
     "features": null,
-    "n": 63,
-    "correct": 47,
-    "pass_at_1": 0.746031746031746,
+    "n": 79,
+    "correct": 54,
+    "pass_at_1": 0.6835443037974683,
     "ci95": [
-      0.6265857791515483,
-      0.8371972541690185
+      0.5745170514704335,
+      0.7755486160202957
     ],
-    "mean_env_steps": 5.603174603174603,
-    "mean_llm_calls": 5.603174603174603,
-    "mean_prompt_tokens": 13010.619047619048,
-    "mean_completion_tokens": 2163.5396825396824,
-    "mean_tokens": 15174.15873015873,
-    "median_seconds": 57.1,
+    "mean_env_steps": 7.455696202531645,
+    "mean_llm_calls": 7.455696202531645,
+    "mean_prompt_tokens": 34768.91139240506,
+    "mean_completion_tokens": 2673.759493670886,
+    "mean_tokens": 37442.670886075946,
+    "median_seconds": 67.1,
     "stops": {
-      "submitted": 63
+      "submitted": 76,
+      "max_steps": 3
     },
     "errors": 0,
     "selfcheck_changed_answer": 0,
@@ -29,21 +82,21 @@
     "model": "nvidia/nemotron-3.5-super-vl-120b-a12b",
     "agent": "harness",
     "features": "all",
-    "n": 62,
-    "correct": 49,
-    "pass_at_1": 0.7903225806451613,
+    "n": 98,
+    "correct": 72,
+    "pass_at_1": 0.7346938775510204,
     "ci95": [
-      0.6736054886034556,
-      0.8731612971368666
+      0.6396378419435089,
+      0.8120439855218884
     ],
-    "mean_env_steps": 5.419354838709677,
-    "mean_llm_calls": 5.693548387096774,
-    "mean_prompt_tokens": 16520.064516129034,
-    "mean_completion_tokens": 2476.2096774193546,
-    "mean_tokens": 18996.274193548386,
-    "median_seconds": 54.25,
+    "mean_env_steps": 5.887755102040816,
+    "mean_llm_calls": 5.887755102040816,
+    "mean_prompt_tokens": 19376.836734693876,
+    "mean_completion_tokens": 2520.5204081632655,
+    "mean_tokens": 21897.35714285714,
+    "median_seconds": 71.1,
     "stops": {
-      "submitted": 62
+      "submitted": 98
     },
     "errors": 0,
     "selfcheck_changed_answer": 0,
@@ -54,21 +107,21 @@
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
     "agent": "baseline",
     "features": null,
-    "n": 16,
-    "correct": 9,
-    "pass_at_1": 0.5625,
+    "n": 20,
+    "correct": 10,
+    "pass_at_1": 0.5,
     "ci95": [
-      0.33178195606776517,
-      0.7690163666481448
+      0.2992949144298199,
+      0.7007050855701801
     ],
-    "mean_env_steps": 7.625,
-    "mean_llm_calls": 7.625,
-    "mean_prompt_tokens": 20459.25,
-    "mean_completion_tokens": 1316.25,
-    "mean_tokens": 21775.5,
-    "median_seconds": 62.8,
+    "mean_env_steps": 9.15,
+    "mean_llm_calls": 9.15,
+    "mean_prompt_tokens": 27190.4,
+    "mean_completion_tokens": 1449,
+    "mean_tokens": 28639.4,
+    "median_seconds": 71.2,
     "stops": {
-      "submitted": 16
+      "submitted": 20
     },
     "errors": 0,
     "selfcheck_changed_answer": 0,
@@ -79,21 +132,21 @@
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
     "agent": "harness",
     "features": "all",
-    "n": 2,
-    "correct": 2,
+    "n": 8,
+    "correct": 8,
     "pass_at_1": 1.0,
     "ci95": [
-      0.34237195288961925,
+      0.6755843804891231,
       1.0
     ],
-    "mean_env_steps": 4,
+    "mean_env_steps": 4.125,
     "mean_llm_calls": 6,
-    "mean_prompt_tokens": 13967.5,
-    "mean_completion_tokens": 965,
-    "mean_tokens": 14932.5,
-    "median_seconds": 149.55,
+    "mean_prompt_tokens": 14646.625,
+    "mean_completion_tokens": 1054.125,
+    "mean_tokens": 15700.75,
+    "median_seconds": 151.65,
     "stops": {
-      "submitted": 2
+      "submitted": 8
     },
     "errors": 0,
     "selfcheck_changed_answer": 0,
